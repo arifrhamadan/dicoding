@@ -1,1 +1,1 @@
-https://bike-sharing-dataset-vzd9cqbrdqrqdwsdvjzsbm.streamlit.app/
+https://dicoding-8bcdevabcdwldpsbd96elu.streamlit.app/

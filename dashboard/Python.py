@@ -5,6 +5,7 @@ import seaborn as sns
 
 # Load datasets
 def load_data():
+    # Sesuaikan path dataset sesuai lokasi file Anda
     day_data = pd.read_csv('./data/day.csv')
     hour_data = pd.read_csv('./data/hour.csv')
     return day_data, hour_data
@@ -30,15 +31,20 @@ def main():
     selected_date = st.sidebar.date_input("Pilih Rentang Tanggal", [min_date, max_date])
 
     # Filter data
-    filtered_data = day_data.copy()
+    filtered_day_data = day_data.copy()
+    filtered_hour_data = hour_data.copy()
 
     if selected_season:
-        filtered_data = filtered_data[filtered_data['season'].isin(selected_season)]
+        filtered_day_data = filtered_day_data[filtered_day_data['season'].isin(selected_season)]
+        filtered_hour_data = filtered_hour_data[filtered_hour_data['season'].isin(selected_season)]
 
     if selected_date:
         start_date, end_date = selected_date
-        filtered_data['dteday'] = pd.to_datetime(filtered_data['dteday'])
-        filtered_data = filtered_data[(filtered_data['dteday'] >= pd.Timestamp(start_date)) & (filtered_data['dteday'] <= pd.Timestamp(end_date))]
+        filtered_day_data['dteday'] = pd.to_datetime(filtered_day_data['dteday'])
+        filtered_day_data = filtered_day_data[(filtered_day_data['dteday'] >= pd.Timestamp(start_date)) & (filtered_day_data['dteday'] <= pd.Timestamp(end_date))]
+        
+        filtered_hour_data['dteday'] = pd.to_datetime(filtered_hour_data['dteday'])
+        filtered_hour_data = filtered_hour_data[(filtered_hour_data['dteday'] >= pd.Timestamp(start_date)) & (filtered_hour_data['dteday'] <= pd.Timestamp(end_date))]
 
     # Business Questions
     st.header("Pertanyaan Bisnis")
@@ -50,10 +56,11 @@ def main():
 
     # Distribusi peminjaman sepeda berdasarkan musim
     st.subheader("Distribusi Peminjaman Sepeda Berdasarkan Musim")
-    if not filtered_data.empty:
-        season_counts = filtered_data['season'].value_counts().sort_index()
+    if not filtered_day_data.empty:
         plt.figure(figsize=(8, 6))
-        plt.bar(season_counts.index.map(seasons), season_counts.values, color=['springgreen', 'skyblue', 'gold', 'tomato'])
+        season_counts = filtered_day_data.groupby('season')['cnt'].sum()
+        season_counts.index = season_counts.index.map(seasons)
+        plt.bar(season_counts.index, season_counts.values, color=['springgreen', 'skyblue', 'gold', 'tomato'])
         plt.title("Distribusi Peminjaman Sepeda Berdasarkan Musim")
         plt.xlabel("Musim")
         plt.ylabel("Jumlah Peminjaman")
@@ -65,9 +72,9 @@ def main():
 
     # Hubungan temperatur dan jumlah peminjaman sepeda
     st.subheader("Hubungan Temperatur dan Jumlah Peminjaman Sepeda")
-    if not filtered_data.empty:
+    if not filtered_hour_data.empty:
         plt.figure(figsize=(8, 6))
-        sns.scatterplot(data=filtered_data, x='temp', y='cnt', alpha=0.6, color='blue')
+        sns.scatterplot(data=filtered_hour_data, x='temp', y='cnt', alpha=0.6, color='blue')
         plt.title("Hubungan Temperatur dan Jumlah Peminjaman Sepeda")
         plt.xlabel("Temperatur")
         plt.ylabel("Jumlah Peminjaman")
